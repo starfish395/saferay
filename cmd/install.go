@@ -9,6 +9,15 @@ import (
 
 const installPath = "/usr/local/bin/saferay"
 
+func cmdInstallWithOptions(lightMode bool) {
+	cmdInstall()
+
+	if lightMode {
+		fmt.Println()
+		SetupLightMode()
+	}
+}
+
 func cmdInstall() {
 	execPath, err := os.Executable()
 	if err != nil {
@@ -68,9 +77,18 @@ func cmdUninstall() {
 		fmt.Printf("Error removing binary: %v\n", err)
 	}
 
-	// Also cleanup DNS daemon and xray rules
+	// Also cleanup DNS daemon, xray rules, and light mode
 	removeDNSDaemon()
 	resetXrayRules()
+
+	// Reset light mode DNS if configured
+	if _, err := os.Stat(lightConfigPath); err == nil {
+		service := getActiveNetworkService()
+		if service != "" {
+			resetDNS(service)
+		}
+		exec.Command("sudo", "rm", "-rf", "/etc/saferay").Run()
+	}
 
 	fmt.Println("✓ saferay uninstalled")
 }

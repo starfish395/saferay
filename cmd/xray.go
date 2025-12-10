@@ -36,6 +36,18 @@ func cmdXray(action string) {
 }
 
 func installXrayRules() {
+	// Check if light mode is active and reset DNS (but keep flush daemon)
+	if _, err := os.Stat(lightConfigPath); err == nil {
+		fmt.Println("Light mode detected, resetting DNS settings...")
+		service := getActiveNetworkService()
+		if service != "" {
+			resetDNS(service)
+		}
+		exec.Command("sudo", "rm", "-f", lightConfigPath).Run()
+		fmt.Println("Note: DNS flush daemon kept (useful for both modes)")
+		fmt.Println()
+	}
+
 	// Write anchor file
 	tmpAnchor := "/tmp/xray-dns-anchor"
 	if err := os.WriteFile(tmpAnchor, []byte(anchorRules), 0644); err != nil {

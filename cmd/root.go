@@ -22,7 +22,15 @@ func Execute() {
 
 	switch os.Args[1] {
 	case "install":
-		cmdInstall()
+		// Check for --light flag
+		lightMode := false
+		for _, arg := range os.Args[2:] {
+			if arg == "--light" || arg == "-l" {
+				lightMode = true
+				break
+			}
+		}
+		cmdInstallWithOptions(lightMode)
 	case "uninstall":
 		cmdUninstall()
 	case "dns":
@@ -31,6 +39,12 @@ func Execute() {
 			os.Exit(1)
 		}
 		cmdDNS(os.Args[2])
+	case "light":
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: saferay light [setup|reset|status]")
+			os.Exit(1)
+		}
+		cmdLight(os.Args[2])
 	case "xray":
 		if len(os.Args) < 3 {
 			fmt.Println("Usage: saferay xray [install|enable|disable|reset|status]")
@@ -129,18 +143,33 @@ func printUsage() {
 
 Usage:
   saferay install              Install saferay to /usr/local/bin
-  saferay uninstall            Remove saferay from system
+  saferay install --light      Install + setup light mode (DNS flush + 8.8.8.8)
+  saferay uninstall            Remove saferay and all configurations
   saferay check                Check system requirements
   saferay version              Show version
 
+Light mode (no VPN required):
+  saferay light setup          Setup light mode: DNS flush on reboot + set DNS 8.8.8.8
+  saferay light reset          Remove light mode settings
+  saferay light status         Show light mode status
+
+DNS cache:
   saferay dns setup            Setup DNS cache flush on reboot
   saferay dns remove           Remove DNS flush daemon
   saferay dns status           Check DNS flush daemon status
   saferay dns flush            Flush DNS cache now
 
+Xray mode (requires VPN):
   saferay xray install         Install pf rules for Xray DNS protection
   saferay xray enable          Enable pf firewall with Xray rules
   saferay xray disable         Disable pf firewall
   saferay xray reset           Remove all Xray pf rules
-  saferay xray status          Show current pf/Xray status`)
+  saferay xray status          Show current pf/Xray status
+
+Modes:
+  Light mode - Uses Google DNS (8.8.8.8) + DNS flush. No VPN needed.
+  Xray mode  - Forces all DNS through VPN tunnel. Requires Xray/Hiddify.
+
+Switching from light to xray: Run 'saferay xray install' - it will
+automatically reset light mode DNS and keep the flush daemon.`)
 }

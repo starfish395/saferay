@@ -4,189 +4,195 @@ DNS leak protection utility for macOS with Xray/Hiddify VPN.
 
 ## What it does
 
-When using Xray-based VPN clients (Hiddify, v2rayN, etc.), DNS requests can bypass the tunnel and leak to your ISP. This utility:
+When using Xray-based VPN clients (Hiddify, v2rayN, etc.), DNS requests can bypass the tunnel and leak to your ISP. This utility provides two protection modes:
 
-1. **Blocks direct DNS requests** — all DNS traffic is forced through the VPN tunnel
-2. **Flushes DNS cache on reboot** — prevents stale DNS entries from leaking
-
-## How it works
-
-Uses macOS `pf` (Packet Filter) firewall to:
-- Allow DNS (port 53) only through `utun4` (Xray tunnel interface)
-- Allow DNS to localhost (127.0.0.1) for local resolvers
-- Block all other DNS traffic
+1. **Xray mode** — Forces all DNS through VPN tunnel using pf firewall
+2. **Light mode** — Uses Google DNS (8.8.8.8) + DNS cache flush (no VPN required)
 
 ## Requirements
 
 - macOS 10.15+
-- Go 1.21+ (for building)
-- Xray-based VPN client (Hiddify, v2rayN, etc.)
+- Go 1.21+ (for building from source)
 - Administrator privileges (sudo)
+- For Xray mode: Xray-based VPN client (Hiddify, v2rayN, etc.)
 
 ## Installation
 
 ### Build from source
 
 ```bash
-git clone https://github.com/yourusername/saferay.git
+git clone https://github.com/alexfomin/saferay.git
 cd saferay
-go build -o saferay .
+make build
 ```
 
 ### Install globally
 
 ```bash
+# Basic install (binary only)
 ./saferay install
+
+# Install with light mode (DNS flush + 8.8.8.8)
+./saferay install --light
 ```
 
-This copies the binary to `/usr/local/bin/saferay`.
-
-## Usage
-
-### Quick Start
+### Check system requirements
 
 ```bash
-# 1. Install DNS protection rules
-saferay xray install
-
-# 2. Start your VPN (Hiddify, etc.)
-
-# 3. Enable protection
-saferay xray enable
-
-# 4. Check status
-saferay xray status
+saferay check
 ```
 
-### Commands
+## Modes
 
-#### Global
+### Light Mode (no VPN required)
+
+Simple DNS protection without VPN:
+- Sets DNS to Google (8.8.8.8, 8.8.4.4)
+- Flushes DNS cache on every reboot
+- Good for basic protection from ISP DNS hijacking
+
+```bash
+# Setup light mode
+saferay light setup
+
+# Check status
+saferay light status
+
+# Remove light mode
+saferay light reset
+```
+
+### Xray Mode (requires VPN)
+
+Full DNS leak protection with VPN:
+- Blocks all DNS except through VPN tunnel
+- Prevents any DNS leaks to ISP
+- Requires Xray/Hiddify running
+
+```bash
+# Install firewall rules
+saferay xray install
+
+# Start your VPN (Hiddify, etc.)
+
+# Enable protection
+saferay xray enable
+
+# Check status
+saferay xray status
+
+# Disable when done
+saferay xray disable
+```
+
+## Commands Reference
+
+### Global
 
 | Command | Description |
 |---------|-------------|
 | `saferay install` | Install saferay to `/usr/local/bin` |
-| `saferay uninstall` | Remove saferay and all its configurations |
+| `saferay install --light` | Install + setup light mode |
+| `saferay uninstall` | Remove saferay and all configurations |
+| `saferay check` | Check system requirements |
+| `saferay version` | Show version |
 | `saferay help` | Show help message |
 
-#### DNS Cache Management
+### Light Mode
 
 | Command | Description |
 |---------|-------------|
-| `saferay dns setup` | Setup automatic DNS cache flush on system reboot |
-| `saferay dns remove` | Remove the DNS flush daemon |
-| `saferay dns status` | Check if DNS flush daemon is installed |
-| `saferay dns flush` | Flush DNS cache immediately |
+| `saferay light setup` | Setup light mode (DNS flush + 8.8.8.8) |
+| `saferay light reset` | Remove light mode settings |
+| `saferay light status` | Show light mode status |
 
-#### Xray DNS Protection
+### DNS Cache
 
 | Command | Description |
 |---------|-------------|
-| `saferay xray install` | Install pf firewall rules for DNS protection |
-| `saferay xray enable` | Enable the firewall (activate protection) |
-| `saferay xray disable` | Disable the firewall (deactivate protection) |
-| `saferay xray reset` | Remove all Xray-related firewall rules |
-| `saferay xray status` | Show current protection status |
+| `saferay dns setup` | Setup DNS cache flush on reboot |
+| `saferay dns remove` | Remove DNS flush daemon |
+| `saferay dns status` | Check DNS flush daemon status |
+| `saferay dns flush` | Flush DNS cache now |
 
-## Typical Workflow
+### Xray Mode
 
-### First-time setup
+| Command | Description |
+|---------|-------------|
+| `saferay xray install` | Install pf firewall rules |
+| `saferay xray enable` | Enable firewall (activate protection) |
+| `saferay xray disable` | Disable firewall |
+| `saferay xray reset` | Remove all Xray firewall rules |
+| `saferay xray status` | Show protection status |
+
+## Switching Modes
+
+### Light → Xray
 
 ```bash
-# Install saferay globally
-./saferay install
-
-# Setup DNS flush on reboot (optional but recommended)
-saferay dns setup
-
-# Install firewall rules
+# Just run xray install - it will automatically:
+# - Reset light mode DNS settings
+# - Keep DNS flush daemon (useful for both)
 saferay xray install
+saferay xray enable
 ```
 
-### Daily usage
+### Xray → Light
 
 ```bash
-# 1. Start your VPN client (Hiddify, etc.)
+saferay xray reset
+saferay light setup
+```
 
-# 2. Enable DNS protection
+## Typical Workflows
+
+### Light mode (no VPN)
+
+```bash
+# One-time setup
+./saferay install --light
+
+# That's it! DNS is now set to 8.8.8.8 and will flush on reboot
+```
+
+### Xray mode (with VPN)
+
+```bash
+# One-time setup
+./saferay install
+saferay xray install
+
+# Daily usage
+# 1. Start VPN (Hiddify)
+# 2. Enable protection
 saferay xray enable
 
 # 3. Work...
 
-# 4. When done, disable protection
+# 4. Disable protection
 saferay xray disable
-
-# 5. Stop your VPN client
-```
-
-### Verify protection is working
-
-```bash
-# Check status
-saferay xray status
-
-# Expected output:
-# === Xray DNS Protection Status ===
-#
-# Rules installed: ✓ Yes
-# pf firewall:     ✓ Enabled
-# Anchor loaded:   ✓ Yes
-#
-# Active rules:
-#   pass out quick on utun4 proto udp from any to any port = 53
-#   pass out quick on utun4 proto tcp from any to any port = 53
-#   pass out quick on lo0 inet proto udp from any to 127.0.0.0/8 port = 53
-#   pass out quick on lo0 inet proto tcp from any to 127.0.0.0/8 port = 53
-#   block drop out quick proto udp from any to any port = 53
-#   block drop out quick proto tcp from any to any port = 53
-```
-
-### Test DNS leak protection
-
-```bash
-# With VPN running and protection enabled:
-
-# This should work (goes through tunnel)
-nslookup google.com
-
-# This should also work (Xray intercepts it)
-nslookup google.com 8.8.8.8
-
-# Disable VPN, keep protection enabled:
-# Both commands above should timeout (blocked)
+# 5. Stop VPN
 ```
 
 ## Troubleshooting
 
-### "Resource busy" error when enabling
+### "Resource busy" error
 
 ```bash
-# Flush all rules and retry
 sudo pfctl -F all
 saferay xray enable
 ```
 
-### DNS not working after enabling
+### DNS not working with Xray mode
 
-1. Make sure your VPN is running
-2. Check the tunnel interface name:
+1. Make sure VPN is running
+2. Check tunnel interface:
    ```bash
    ifconfig | grep "^utun"
    ```
-3. If your tunnel is not `utun4`, you need to modify the rules (see Configuration section)
+3. If not `utun4`, edit `/etc/pf.anchors/xray-dns`
 
-### Check what's in pf.conf
-
-```bash
-cat /etc/pf.conf
-```
-
-Should contain at the end:
-```
-anchor "xray-dns"
-load anchor "xray-dns" from "/etc/pf.anchors/xray-dns"
-```
-
-### View active firewall rules
+### View firewall rules
 
 ```bash
 sudo pfctl -s rules
@@ -196,75 +202,59 @@ sudo pfctl -a "xray-dns" -s rules
 ### Complete reset
 
 ```bash
-# Remove everything and start fresh
-saferay xray reset
-saferay dns remove
-
-# Or uninstall completely
 saferay uninstall
 ```
-
-## Configuration
-
-### Changing tunnel interface
-
-By default, saferay uses `utun4` as the tunnel interface. If your VPN uses a different interface:
-
-1. Find your tunnel interface:
-   ```bash
-   ifconfig | grep "^utun"
-   ```
-
-2. Edit `/etc/pf.anchors/xray-dns` and replace `utun4` with your interface name
-
-3. Reload rules:
-   ```bash
-   saferay xray enable
-   ```
-
-### Firewall rules explained
-
-```
-pass out quick on utun4 proto { udp tcp } to any port 53
-```
-Allow DNS through VPN tunnel (utun4)
-
-```
-pass out quick on lo0 proto { udp tcp } to 127.0.0.0/8 port 53
-```
-Allow DNS to localhost (for local DNS resolvers)
-
-```
-block out quick proto { udp tcp } to any port 53
-```
-Block all other DNS traffic (prevents leaks)
 
 ## Files
 
 | Path | Description |
 |------|-------------|
 | `/usr/local/bin/saferay` | Main binary |
-| `/etc/pf.conf` | macOS packet filter config (modified) |
-| `/etc/pf.anchors/xray-dns` | DNS protection rules |
+| `/etc/pf.conf` | macOS packet filter config |
+| `/etc/pf.anchors/xray-dns` | Xray DNS protection rules |
+| `/etc/saferay/light.conf` | Light mode config |
 | `/Library/LaunchDaemons/com.saferay.dnsflush.plist` | DNS flush daemon |
 
-## Uninstallation
+## How Xray Mode Works
+
+Uses macOS `pf` (Packet Filter) firewall:
+
+```
+pass out quick on utun4 proto { udp tcp } to any port 53
+```
+Allow DNS through VPN tunnel
+
+```
+pass out quick on lo0 proto { udp tcp } to 127.0.0.0/8 port 53
+```
+Allow DNS to localhost
+
+```
+block out quick proto { udp tcp } to any port 53
+```
+Block all other DNS (prevents leaks)
+
+## Development
 
 ```bash
-# Remove everything
-saferay uninstall
-```
+# Build
+make build
 
-This will:
-- Remove the binary from `/usr/local/bin`
-- Remove DNS flush daemon
-- Remove all firewall rules
-- Restore original pf.conf
+# Build with version from git tag
+make build
+
+# Test locally
+make snapshot
+
+# Release (requires git tag)
+git tag v1.0.0
+git push origin --tags
+# GitHub Actions will build and release
+```
 
 ## Security Notes
 
 - All commands require `sudo` for system modifications
-- The firewall rules only affect DNS traffic (port 53)
+- Firewall rules only affect DNS traffic (port 53)
 - Other traffic is not affected
 - When protection is disabled, DNS works normally
-
