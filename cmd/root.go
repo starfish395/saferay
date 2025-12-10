@@ -42,7 +42,7 @@ func Execute() {
 	case "help", "-h", "--help":
 		printUsage()
 	case "version", "-v", "--version":
-		fmt.Println("saferay v1.0.0")
+		cmdVersion()
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		printUsage()

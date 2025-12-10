@@ -1,0 +1,55 @@
+version: 2
+
+project_name: saferay
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: saferay
+    main: .
+    binary: saferay
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X saferay/cmd.version={{.Version}}
+      - -X saferay/cmd.commit={{.ShortCommit}}
+      - -X saferay/cmd.date={{.Date}}
+      - -X saferay/cmd.builtBy=goreleaser
+    env:
+      - CGO_ENABLED=0
+
+universal_binaries:
+  - id: saferay
+    replace: true
+    name_template: saferay
+
+archives:
+  - id: saferay
+    formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+
+release:
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
