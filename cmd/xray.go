@@ -17,7 +17,7 @@ block out quick proto { udp tcp } to any port 53
 `
 )
 
-func cmdXray(action string) {
+func cmdXray(action string, args []string) {
 	switch action {
 	case "install":
 		installXrayRules()
@@ -29,6 +29,15 @@ func cmdXray(action string) {
 		resetXrayRules()
 	case "status":
 		statusXray()
+	case "auto":
+		if len(args) < 1 {
+			fmt.Println("Usage: saferay xray auto [start|stop|status]")
+			os.Exit(1)
+		}
+		cmdXrayAuto(args[0])
+	case "watch":
+		// Internal command used by daemon
+		cmdXrayWatch()
 	default:
 		fmt.Printf("Unknown xray action: %s\n", action)
 		os.Exit(1)

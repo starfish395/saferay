@@ -47,10 +47,15 @@ func Execute() {
 		cmdLight(os.Args[2])
 	case "xray":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: saferay xray [install|enable|disable|reset|status]")
+			fmt.Println("Usage: saferay xray [install|enable|disable|reset|status|auto]")
 			os.Exit(1)
 		}
-		cmdXray(os.Args[2])
+		// Pass remaining args for subcommands like 'auto start'
+		var extraArgs []string
+		if len(os.Args) > 3 {
+			extraArgs = os.Args[3:]
+		}
+		cmdXray(os.Args[2], extraArgs)
 	case "check":
 		cmdCheck()
 	case "help", "-h", "--help":
@@ -166,6 +171,9 @@ Xray mode (requires VPN):
   saferay xray disable         Disable pf firewall
   saferay xray reset           Remove all Xray pf rules
   saferay xray status          Show current pf/Xray status
+  saferay xray auto start      Auto-enable pf when VPN connects (recommended)
+  saferay xray auto stop       Disable auto mode
+  saferay xray auto status     Show auto mode status
 
 Modes:
   Light mode - Uses Google DNS (8.8.8.8) + DNS flush. No VPN needed.

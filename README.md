@@ -69,6 +69,19 @@ Full DNS leak protection with VPN:
 - Prevents any DNS leaks to ISP
 - Requires Xray/Hiddify running
 
+**Recommended: Auto mode** (enables/disables automatically with VPN):
+
+```bash
+# One-time setup
+saferay xray install
+saferay xray auto start
+
+# That's it! Protection auto-enables when VPN connects
+# and auto-disables when VPN disconnects
+```
+
+**Manual mode** (if you prefer manual control):
+
 ```bash
 # Install firewall rules
 saferay xray install
@@ -124,6 +137,9 @@ saferay xray disable
 | `saferay xray disable` | Disable firewall |
 | `saferay xray reset` | Remove all Xray firewall rules |
 | `saferay xray status` | Show protection status |
+| `saferay xray auto start` | Start auto mode (recommended) |
+| `saferay xray auto stop` | Stop auto mode |
+| `saferay xray auto status` | Show auto mode status |
 
 ## Switching Modes
 
@@ -214,6 +230,8 @@ saferay uninstall
 | `/etc/pf.anchors/xray-dns` | Xray DNS protection rules |
 | `/etc/saferay/light.conf` | Light mode config |
 | `/Library/LaunchDaemons/com.saferay.dnsflush.plist` | DNS flush daemon |
+| `/Library/LaunchDaemons/com.saferay.xray-auto.plist` | Auto mode daemon |
+| `/var/log/saferay-xray.log` | Auto mode log |
 
 ## How Xray Mode Works
 

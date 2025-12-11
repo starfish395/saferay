@@ -77,8 +77,9 @@ func cmdUninstall() {
 		fmt.Printf("Error removing binary: %v\n", err)
 	}
 
-	// Also cleanup DNS daemon, xray rules, and light mode
+	// Also cleanup DNS daemon, xray rules, auto daemon, and light mode
 	removeDNSDaemon()
+	stopAutoDaemon()
 	resetXrayRules()
 
 	// Reset light mode DNS if configured
