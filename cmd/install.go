@@ -87,7 +87,7 @@ func cmdUninstall() {
 		if service != "" {
 			resetDNS(service)
 		}
-		exec.Command("sudo", "rm", "-rf", "/etc/saferay").Run()
+		_ = exec.Command("sudo", "rm", "-rf", "/etc/saferay").Run()
 	}
 
 	fmt.Println("✓ saferay uninstalled")

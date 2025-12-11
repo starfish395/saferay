@@ -237,13 +237,22 @@ Block all other DNS (prevents leaks)
 ## Development
 
 ```bash
-# Build
+# Setup pre-commit hooks
+pre-commit install
+
+# Format code
+make fmt
+
+# Run linter
+make lint
+
+# Build (runs fmt + lint first)
 make build
 
-# Build with version from git tag
-make build
+# Build without checks (fast)
+make build-fast
 
-# Test locally
+# Test locally with goreleaser
 make snapshot
 
 # Release (requires git tag)

@@ -5,6 +5,8 @@ project_name: saferay
 before:
   hooks:
     - go mod tidy
+    - gofmt -w -s .
+    - golangci-lint run ./...
 
 builds:
   - id: saferay

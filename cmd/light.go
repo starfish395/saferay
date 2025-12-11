@@ -67,7 +67,7 @@ func resetLightMode() {
 	}
 
 	// 3. Remove config
-	exec.Command("sudo", "rm", "-rf", "/etc/saferay").Run()
+	_ = exec.Command("sudo", "rm", "-rf", "/etc/saferay").Run()
 
 	fmt.Println("✓ Light mode disabled")
 }
@@ -149,7 +149,7 @@ func getActiveNetworkService() string {
 
 func saveOriginalDNS(service string) {
 	// Create config directory
-	exec.Command("sudo", "mkdir", "-p", "/etc/saferay").Run()
+	_ = exec.Command("sudo", "mkdir", "-p", "/etc/saferay").Run()
 
 	// Get current DNS
 	out, _ := exec.Command("networksetup", "-getdnsservers", service).CombinedOutput()
@@ -165,8 +165,8 @@ func saveOriginalDNS(service string) {
 
 	// Write to temp and move
 	tmpFile := "/tmp/saferay_light.conf"
-	os.WriteFile(tmpFile, []byte(content), 0644)
-	exec.Command("sudo", "mv", tmpFile, lightConfigPath).Run()
+	_ = os.WriteFile(tmpFile, []byte(content), 0644)
+	_ = exec.Command("sudo", "mv", tmpFile, lightConfigPath).Run()
 }
 
 func setDNS(service string, dns ...string) {
@@ -196,19 +196,18 @@ func resetDNS(service string) {
 					// Set to empty (automatic)
 					cmd := exec.Command("sudo", "networksetup", "-setdnsservers", service, "Empty")
 					cmd.Stdin = os.Stdin
-					cmd.Run()
+					_ = cmd.Run()
 					fmt.Printf("✓ DNS reset to automatic on %s\n", service)
 					return
-				} else {
-					// Restore original DNS
-					dnsServers := strings.Fields(dns)
-					args := append([]string{"networksetup", "-setdnsservers", service}, dnsServers...)
-					cmd := exec.Command("sudo", args...)
-					cmd.Stdin = os.Stdin
-					cmd.Run()
-					fmt.Printf("✓ DNS restored to %s on %s\n", dns, service)
-					return
 				}
+				// Restore original DNS
+				dnsServers := strings.Fields(dns)
+				args := append([]string{"networksetup", "-setdnsservers", service}, dnsServers...)
+				cmd := exec.Command("sudo", args...)
+				cmd.Stdin = os.Stdin
+				_ = cmd.Run()
+				fmt.Printf("✓ DNS restored to %s on %s\n", dns, service)
+				return
 			}
 		}
 	}
@@ -216,7 +215,7 @@ func resetDNS(service string) {
 	// Fallback: set to empty (automatic)
 	cmd := exec.Command("sudo", "networksetup", "-setdnsservers", service, "Empty")
 	cmd.Stdin = os.Stdin
-	cmd.Run()
+	_ = cmd.Run()
 	fmt.Printf("✓ DNS reset to automatic on %s\n", service)
 }
 

@@ -74,8 +74,8 @@ func setupDNSDaemon() {
 }
 
 func removeDNSDaemon() {
-	exec.Command("sudo", "launchctl", "unload", "-w", daemonPath).Run()
-	exec.Command("sudo", "rm", "-f", daemonPath).Run()
+	_ = exec.Command("sudo", "launchctl", "unload", "-w", daemonPath).Run()
+	_ = exec.Command("sudo", "rm", "-f", daemonPath).Run()
 	fmt.Println("✓ DNS flush daemon removed")
 }
 
@@ -96,11 +96,11 @@ func statusDNSDaemon() {
 func flushDNS() {
 	cmd := exec.Command("sudo", "dscacheutil", "-flushcache")
 	cmd.Stdin = os.Stdin
-	cmd.Run()
+	_ = cmd.Run()
 
 	cmd = exec.Command("sudo", "killall", "-HUP", "mDNSResponder")
 	cmd.Stdin = os.Stdin
-	cmd.Run()
+	_ = cmd.Run()
 
 	fmt.Println("✓ DNS cache flushed")
 }

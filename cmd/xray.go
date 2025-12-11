@@ -43,7 +43,7 @@ func installXrayRules() {
 		if service != "" {
 			resetDNS(service)
 		}
-		exec.Command("sudo", "rm", "-f", lightConfigPath).Run()
+		_ = exec.Command("sudo", "rm", "-f", lightConfigPath).Run()
 		fmt.Println("Note: DNS flush daemon kept (useful for both modes)")
 		fmt.Println()
 	}
@@ -130,14 +130,14 @@ func disableXray() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	cmd.Run()
+	_ = cmd.Run()
 
 	fmt.Println("✓ pf firewall disabled")
 }
 
 func resetXrayRules() {
 	// Disable pf first
-	exec.Command("sudo", "pfctl", "-d").Run()
+	_ = exec.Command("sudo", "pfctl", "-d").Run()
 
 	// Read and clean pf.conf
 	pfContent, err := os.ReadFile(pfConf)
@@ -153,12 +153,12 @@ func resetXrayRules() {
 
 		tmpPf := "/tmp/pf.conf.clean"
 		if os.WriteFile(tmpPf, []byte(newContent), 0644) == nil {
-			exec.Command("sudo", "mv", tmpPf, pfConf).Run()
+			_ = exec.Command("sudo", "mv", tmpPf, pfConf).Run()
 		}
 	}
 
 	// Remove anchor file
-	exec.Command("sudo", "rm", "-f", anchorPath).Run()
+	_ = exec.Command("sudo", "rm", "-f", anchorPath).Run()
 
 	fmt.Println("✓ Xray DNS rules removed")
 }

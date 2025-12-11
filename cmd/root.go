@@ -65,7 +65,8 @@ func Execute() {
 }
 
 func cmdCheck() {
-	fmt.Println("=== System Check ===\n")
+	fmt.Println("=== System Check ===")
+	fmt.Println()
 	allOk := true
 
 	// Check macOS
